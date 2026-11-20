@@ -1,0 +1,20 @@
+{
+  "name": "kidly-storiez",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bedtime app that turns a child's day into a short interactive story.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "lint": "for f in src/*.js public/*.js test/*.js; do node --check \"$f\" || exit 1; done",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.5.0",
+    "express": "5.3.0"
+  }
+}

@@ -2,13 +2,30 @@
 
 A bedtime app that turns something from a child's day into a short interactive story. A parent notes what happened and approves a story plan. The child then chooses what the hero does and sees what follows from each choice.
 
+## Run it
+
+You need [Node.js](https://nodejs.org) 20 or newer.
+
+```bash
+npm install
+cp .env.example .env      # add your ANTHROPIC_API_KEY (optional, see docs/SETUP.md)
+npm start                 # then open http://localhost:3000 on your phone or laptop
+```
+
+Without an API key the app still works with a built-in offline story ("Offline story" badge). With a key, Claude writes a new story from what you enter ("Live" badge).
+
+Check everything before you share a change: `./scripts/verify.sh`
+
 ## Documents
 
-- [Product requirements](docs/REQUIREMENTS.md): the problem, users, core flow, and all functional, safety and non-functional requirements, with priorities and open questions.
+- [Product requirements](docs/REQUIREMENTS.md): the problem, users, core flow, and all functional, safety and non-functional requirements.
+- [Project status](project-status.md) and [backlog](backlog.md): where we are and what is next.
+- [Architecture](architecture.md): how it is built and why.
+- [Setup](docs/SETUP.md): keys and running on a new machine.
 
 ## Status
 
-Hackathon stage. The requirements are a first draft from the team brainstorming session. Items tagged **[P]** in the requirements are proposals that the team has not confirmed yet.
+Hackathon demo (BL-001). Items tagged **[P]** in the requirements are proposals that the team has not confirmed yet.
 
 ## How to contribute
 

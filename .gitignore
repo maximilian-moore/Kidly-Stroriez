@@ -1,0 +1,64 @@
+# Secrets - never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+credentials.json
+secrets.json
+secrets.yaml
+
+# Claude Code - machine-specific settings may contain tokens
+.claude/settings.local.json
+
+# Skills linked in from a folder on this machine (links break anywhere else).
+# Remove .claude/skills/ if the project commits skills of its own.
+# scripts/install-commands.sh adds its linked command files below on its own.
+.agents/
+.claude/skills/
+
+# Dependencies - rebuildable from the lockfile
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Build output - regenerated every time
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Local data - often contains real user data
+*.db
+*.sqlite
+*.sqlite3
+data/
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Editor and OS clutter
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Review briefs and findings - working files, the fixes are the durable part
+.review/
+
+# Test and coverage output
+coverage/
+.pytest_cache/
+test-results/
+playwright-report/
+evidence/
