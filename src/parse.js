@@ -54,11 +54,20 @@ export function parsePartTail(text, isLast) {
   return { options: options.slice(0, 3) };
 }
 
-// Splits a stream of text chunks at MARKER. Text before the marker is released as
-// soon as it cannot be the start of the marker; everything after it is kept back.
+// Splits a stream of text chunks where the story prose ends. The model is asked to
+// write MARKER before the JSON, but if it forgets, a code fence or the JSON itself
+// also ends the prose, so the child never sees raw JSON. Prose is released as soon
+// as it cannot be the start of an end marker; everything after it is kept back.
+const END_MARKERS = [
+  { text: MARKER, keep: false },
+  { text: "```", keep: false },
+  { text: '{"options"', keep: true },
+  { text: '{"lesson"', keep: true },
+];
+
 export class MarkerSplitter {
-  constructor(marker = MARKER) {
-    this.marker = marker;
+  constructor(markers = END_MARKERS) {
+    this.markers = markers;
     this.buffer = "";
     this.found = false;
     this.tail = "";
@@ -71,20 +80,26 @@ export class MarkerSplitter {
       return "";
     }
     this.buffer += chunk;
-    const idx = this.buffer.indexOf(this.marker);
-    if (idx !== -1) {
+    let hit = null;
+    for (const m of this.markers) {
+      const idx = this.buffer.indexOf(m.text);
+      if (idx !== -1 && (hit === null || idx < hit.idx)) hit = { idx, m };
+    }
+    if (hit) {
       this.found = true;
-      const out = this.buffer.slice(0, idx);
-      this.tail = this.buffer.slice(idx + this.marker.length);
+      const out = this.buffer.slice(0, hit.idx);
+      this.tail = this.buffer.slice(hit.m.keep ? hit.idx : hit.idx + hit.m.text.length);
       this.buffer = "";
       return out;
     }
-    // Hold back the last few characters in case they start the marker.
+    // Hold back the longest ending that could still grow into a marker.
     let keep = 0;
-    for (let k = Math.min(this.marker.length - 1, this.buffer.length); k > 0; k--) {
-      if (this.marker.startsWith(this.buffer.slice(-k))) {
-        keep = k;
-        break;
+    for (const m of this.markers) {
+      for (let k = Math.min(m.text.length - 1, this.buffer.length); k > keep; k--) {
+        if (m.text.startsWith(this.buffer.slice(-k))) {
+          keep = k;
+          break;
+        }
       }
     }
     const out = this.buffer.slice(0, this.buffer.length - keep);

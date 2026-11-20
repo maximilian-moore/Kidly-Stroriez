@@ -12,6 +12,7 @@
     parts: [], // { text, options, chosen }
     busy: false,
     controller: null,
+    run: 0, // bumped on "New story" so an offline story stops typing
   };
 
   // ---------- helpers ----------
@@ -73,12 +74,18 @@
     requestPlan(change);
   });
 
+  // Used only when there is no AI: the offline story is about sharing a toy, so notes
+  // about something serious must not get it (SR-03).
+  const WORRYING = /\b(abus\w*|molest\w*|touched (him|her|me|them)|bleed\w*|blood|hospital|ambulance|police|unsafe|in danger|scared to go home|hurt (him|her|me|them) badly|(grown-?up|adult|teacher|parent|dad|mum|mom|uncle|aunt)\s+(hurt|hit|touched|kicked|slapped))\b/i;
+  const SAFETY_MESSAGE = "This sounds like something to talk through rather than turn into a story. Please talk to someone you trust, such as your doctor, a teacher or a local support service.";
+
   async function requestPlan(changeRequest) {
+    const previous = state.plan;
     $("plan-card").hidden = true;
     $("plan-unsafe").hidden = true;
     $("plan-loading").hidden = false;
     let plan = null;
-    state.offline = false;
+    let offline = !state.live;
     if (state.live) {
       try {
         const res = await fetch("/api/plan", {
@@ -86,25 +93,37 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             age: state.age, hero: state.hero, ...state.notes,
-            previousPlan: changeRequest ? state.plan : undefined,
+            previousPlan: changeRequest ? previous : undefined,
             changeRequest: changeRequest || undefined,
           }),
         });
         if (res.ok) plan = await res.json();
-        else if (res.status === 400) {
-          const { error } = await res.json();
-          return showUnsafe(error || "Please check the details and try again.");
+        else if (res.status === 503) offline = true;
+        else {
+          const body = await res.json().catch(() => ({}));
+          return planError(body.error || "The story helper could not make a plan just now.", changeRequest, previous);
         }
-      } catch { /* fall through to offline */ }
+      } catch {
+        offline = true; // no network
+      }
     }
-    if (!plan) {
+    if (offline) {
+      if (changeRequest) return planError("Changing the plan needs the internet. The offline story stays the same.", changeRequest, previous);
       await sleep(600);
-      plan = window.FALLBACK.plan;
-      state.offline = true;
+      const notes = Object.values(state.notes).join(" ");
+      plan = WORRYING.test(notes) ? { safe: false, message: SAFETY_MESSAGE } : window.FALLBACK.plan;
     }
+    state.offline = offline;
     setMode();
     $("plan-loading").hidden = true;
-    if (plan.safe === false) return showUnsafe(plan.message);
+    if (plan.safe === false) {
+      state.plan = null;
+      return showUnsafe(plan.message);
+    }
+    renderPlan(plan);
+  }
+
+  function renderPlan(plan) {
     state.plan = plan;
     $("change").value = "";
     $("plan-title").textContent = plan.title || "Tonight's story";
@@ -119,6 +138,25 @@
       return li;
     }));
     $("plan-card").hidden = false;
+  }
+
+  // Shows a problem with a retry, and keeps the plan the parent already had.
+  function planError(message, changeRequest, previous) {
+    $("plan-loading").hidden = true;
+    const box = $("plan-unsafe");
+    const p = document.createElement("p");
+    p.textContent = message;
+    const retry = document.createElement("button");
+    retry.className = "btn ghost";
+    retry.type = "button";
+    retry.textContent = "Try again";
+    retry.addEventListener("click", () => requestPlan(changeRequest));
+    box.replaceChildren(p, retry);
+    box.hidden = false;
+    if (previous) {
+      renderPlan(previous);
+      $("change").value = changeRequest || "";
+    }
   }
 
   function showUnsafe(message) {
@@ -201,6 +239,7 @@
 
   $("restart").addEventListener("click", () => {
     state.controller?.abort();
+    state.run += 1;
     $("day-form").reset();
     show("screen-day");
   });
@@ -261,7 +300,7 @@
       signal: state.controller.signal,
       body: JSON.stringify({
         age: state.age, hero: state.hero, ...state.notes,
-        plan: state.plan, approved: true, partIndex: index, history,
+        plan: state.plan, sig: state.plan.sig, approved: true, partIndex: index, history,
       }),
     });
     if (!res.ok || !res.body) throw new Error("HTTP " + res.status);
@@ -284,6 +323,9 @@
           $("story-wait").hidden = true;
           part.text += msg.text;
           para.textContent = part.text.trimStart();
+        } else if (msg.type === "reset") {
+          part.text = "";
+          para.textContent = "";
         } else if (msg.type === "options") {
           part.text = part.text.trim();
           finishPart(index, part, msg);
@@ -320,7 +362,13 @@
     $("story-wait").hidden = true;
     const para = currentParagraph();
     const words = fill(text).split(" ");
+    const run = state.run;
     for (const w of words) {
+      if (state.run !== run) {
+        const err = new Error("stopped");
+        err.name = "AbortError";
+        throw err;
+      }
       part.text += (part.text ? " " : "") + w;
       para.textContent = part.text;
       await sleep(35);

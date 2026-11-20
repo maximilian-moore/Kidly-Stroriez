@@ -25,8 +25,14 @@ test/            unit and API tests (fake Claude client)
 3. Each of the 3 parts streams as NDJSON: `text` lines, then `options` (parts 1-2) or
    `end` with lesson and parent questions (part 3). The model ends the prose with a
    `@@@` line followed by JSON; the server hides that and parses it.
-4. If the server has no key, or the AI call fails at plan stage, the client runs the
-   built-in story in `public/fallback.js` (NFR-02).
+4. If the server has no key (503) or there is no network, the client runs the built-in
+   story in `public/fallback.js` (NFR-02), after a keyword safety check on the notes.
+   Any other failure shows an error with "Try again", never the offline story.
+5. The server signs each plan it writes (HMAC over plan + notes); `/api/story` only
+   accepts a plan with a valid signature, so the approval step cannot be skipped.
+6. Per-visitor rate limit (in memory) and `max_tokens` 4000 cap the cost of a public URL.
+7. If a server-side safety fallback switches models mid-part, the server sends `reset`
+   and the client clears that part before the new text arrives.
 
 ## Cost
 Rough estimate: a story is 1 plan + 3 parts, about 4 x 1.5k input and 4 x ~400 output

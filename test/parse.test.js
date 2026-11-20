@@ -19,7 +19,7 @@ test("BL-001-T03 parsePlan rejects a plan without two choice moments", () => {
 });
 
 test("BL-001-T04 MarkerSplitter hides the marker even when split across chunks", () => {
-  const s = new MarkerSplitter("@@@");
+  const s = new MarkerSplitter();
   let shown = "";
   for (const chunk of ["Once upon a ti", "me.\n@", "@", '@\n{"options":', '["a","b","c"]}']) shown += s.push(chunk);
   shown += s.flush();
@@ -28,7 +28,7 @@ test("BL-001-T04 MarkerSplitter hides the marker even when split across chunks",
 });
 
 test("BL-001-T05 MarkerSplitter keeps lone @ signs that are not the marker", () => {
-  const s = new MarkerSplitter("@@@");
+  const s = new MarkerSplitter();
   const shown = s.push("email me @") + s.push("home") + s.flush();
   assert.equal(shown, "email me @home");
 });
@@ -36,4 +36,20 @@ test("BL-001-T05 MarkerSplitter keeps lone @ signs that are not the marker", () 
 test("BL-001-T06 parsePartTail reads the ending lesson and questions", () => {
   const tail = parsePartTail('\n{"lesson":"Share","questions":["q1","q2"]}', true);
   assert.deepEqual(tail, { lesson: "Share", questions: ["q1", "q2"] });
+});
+
+test("BL-001-T20 MarkerSplitter never shows the options JSON when the model forgets the marker", () => {
+  const s = new MarkerSplitter();
+  let shown = "";
+  for (const chunk of ["The end of part one.\n", '{"opt', 'ions":["a","b","c"]}']) shown += s.push(chunk);
+  shown += s.flush();
+  assert.equal(shown, "The end of part one.\n");
+  assert.deepEqual(parsePartTail(s.tail, false).options, ["a", "b", "c"]);
+});
+
+test("BL-001-T21 MarkerSplitter stops at a code fence before the JSON", () => {
+  const s = new MarkerSplitter();
+  const shown = s.push("Sleep tight.\n```json\n") + s.push('{"lesson":"Share","questions":["q"]}\n```') + s.flush();
+  assert.equal(shown, "Sleep tight.\n");
+  assert.equal(parsePartTail(s.tail, true).lesson, "Share");
 });
