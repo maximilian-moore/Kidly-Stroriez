@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#141a3a">
+  <title>Kidly Storiez</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%99%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+  <main class="app">
+    <header class="top">
+      <h1 class="brand">Kidly <span>Storiez</span></h1>
+      <span id="mode" class="mode" hidden></span>
+    </header>
+
+    <!-- 1. Who is the story for -->
+    <section id="screen-start" class="screen">
+      <h2>Tonight's story</h2>
+      <p class="sub">A short story made from your child's day, where they choose what the hero does.</p>
+      <form id="start-form" class="card" autocomplete="off">
+        <div class="row">
+          <label class="field grow">Child's first name
+            <input id="child-name" name="name" maxlength="30" placeholder="e.g. Mia" required>
+          </label>
+          <label class="field">Age
+            <select id="child-age" name="age">
+              <option>3</option><option>4</option><option selected>5</option><option>6</option>
+              <option>7</option><option>8</option><option>9</option>
+            </select>
+          </label>
+        </div>
+        <p class="hint">The name stays on this device. It is never put into the story.</p>
+        <fieldset class="heroes">
+          <legend>Pick tonight's hero</legend>
+          <label class="hero"><input type="radio" name="hero" value="pip" checked><span class="hero-face">🦊</span><span>Pip the fox</span></label>
+          <label class="hero"><input type="radio" name="hero" value="luna"><span class="hero-face">🦉</span><span>Luna the owl</span></label>
+          <label class="hero"><input type="radio" name="hero" value="bruno"><span class="hero-face">🐻</span><span>Bruno the bear</span></label>
+          <label class="hero"><input type="radio" name="hero" value="zaza"><span class="hero-face">🦓</span><span>Zaza the zebra</span></label>
+        </fieldset>
+        <button class="btn primary" type="submit">Next: talk about the day</button>
+      </form>
+    </section>
+
+    <!-- 2. Talk and capture -->
+    <section id="screen-day" class="screen" hidden>
+      <h2>Talk about the day</h2>
+      <p class="sub">Ask <strong class="js-child">your child</strong> these questions, then jot down the answers.</p>
+      <form id="day-form" class="card" autocomplete="off">
+        <label class="field">“What happened today?”
+          <textarea id="happened" rows="3" maxlength="600" required placeholder="e.g. Had a fight with a friend over a toy car at kindergarten"></textarea>
+        </label>
+        <label class="field">“How did it feel?”
+          <textarea id="felt" rows="2" maxlength="400" placeholder="e.g. Angry, then a bit sad"></textarea>
+        </label>
+        <label class="field">“What did you do?”
+          <textarea id="did" rows="2" maxlength="400" placeholder="e.g. Grabbed the car and wouldn't give it back"></textarea>
+        </label>
+        <p class="hint">Please leave out other children's names. The story will use made-up animal friends.</p>
+        <div class="actions">
+          <button class="btn ghost" type="button" data-back="screen-start">Back</button>
+          <button class="btn primary" type="submit">Make a story plan</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 3/4. Plan and approval -->
+    <section id="screen-plan" class="screen" hidden>
+      <h2>Here's the plan</h2>
+      <p class="sub">Nothing is written until you say so.</p>
+      <div id="plan-loading" class="card loading" hidden><span class="moon-spin">🌙</span> Thinking up a story plan…</div>
+      <div id="plan-unsafe" class="card notice" hidden></div>
+      <div id="plan-card" class="card plan" hidden>
+        <h3 id="plan-title"></h3>
+        <dl>
+          <dt>Theme</dt><dd id="plan-theme"></dd>
+          <dt>Lesson</dt><dd id="plan-lesson"></dd>
+          <dt>Setting</dt><dd id="plan-setting"></dd>
+          <dt>How it echoes the day</dt><dd id="plan-echo"></dd>
+          <dt>Choice moments</dt><dd><ol id="plan-choices"></ol></dd>
+        </dl>
+        <div class="actions">
+          <button id="approve" class="btn primary" type="button">Looks good, write the story</button>
+        </div>
+        <form id="change-form" class="change">
+          <label class="field">Want something different?
+            <input id="change" maxlength="400" placeholder="e.g. Set it in space, and make the friend a rabbit">
+          </label>
+          <button class="btn ghost" type="submit">Update plan</button>
+        </form>
+      </div>
+      <div class="actions"><button class="btn ghost" type="button" data-back="screen-day">Back</button></div>
+    </section>
+
+    <!-- 5/6. Story -->
+    <section id="screen-story" class="screen" hidden>
+      <h2 id="story-title" class="story-title"></h2>
+      <article id="story" class="story" aria-live="polite"></article>
+      <div id="story-wait" class="loading" hidden><span class="moon-spin">🌙</span> The story is coming…</div>
+      <div id="choices" class="choices" hidden>
+        <p class="choices-q">What should <span class="js-hero">the hero</span> do?</p>
+        <div id="choice-buttons"></div>
+      </div>
+      <div id="story-error" class="card notice" hidden></div>
+      <button id="go-back" class="btn ghost small" type="button" hidden>↩ Go back and choose differently</button>
+      <div id="ending" class="card ending" hidden>
+        <p class="lesson-label">Tonight's lesson</p>
+        <p id="lesson" class="lesson"></p>
+        <p class="lesson-label">Things to talk about</p>
+        <ul id="questions"></ul>
+        <p class="goodnight">Goodnight, <span class="js-child">little one</span> ✨</p>
+        <button id="restart" class="btn primary" type="button">New story</button>
+      </div>
+    </section>
+  </main>
+  <script src="fallback.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

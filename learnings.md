@@ -21,6 +21,10 @@ turn belongs in AGENTS.md instead. No secrets or personal data.
 ## Build
 
 ## Testing
+- Take full-page screenshots at phone size and check `scrollWidth`; a hidden radio input
+  without a positioned parent made the page scroll sideways. (2026-11-20)
+- Any CSS `display` rule on an element overrides the `hidden` attribute; keep the
+  `[hidden] { display: none !important; }` rule. (2026-11-20)
 
 ## Review
 

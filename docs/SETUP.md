@@ -1,13 +1,13 @@
 # Setup
 
-Everything you need to run this on a new machine. The app stack is chosen in Phase 3;
-install and run steps are added then.
+Everything you need to run this on a new machine. You need Node.js 20 or newer.
 
 ## 1. Clone
 
 ```bash
 git clone https://github.com/samanvaya/Kidly-Stroriez.git
 cd Kidly-Stroriez
+npm install
 ```
 
 ## 2. Secrets
@@ -18,13 +18,21 @@ Copy the example file. Never commit the real one, it is git-ignored for a reason
 cp .env.example .env
 ```
 
-No keys are needed yet. Each key gets an entry here when it is introduced: what it is,
-where to get it, what it costs, and whether it can be regenerated.
+### `ANTHROPIC_API_KEY`
+- **What it is:** lets the server ask Claude to write plans and stories.
+- **Where to get it:** console.anthropic.com > API Keys > Create Key.
+- **Cost:** pay per use; roughly 5-6 US cents per story on the default model.
+- **If you lose it:** create a new one in the same place and delete the old one.
+- **Optional:** without it the app runs the built-in offline story.
 
-## 3. Check
+On a hosting service (Render, Railway, ...) put it in the service's environment
+variables, never in the code.
+
+## 3. Run and check
 
 ```bash
-./scripts/verify.sh
+npm start            # http://localhost:3000
+./scripts/verify.sh  # lint and tests
 ```
 
 ## Moving between machines
