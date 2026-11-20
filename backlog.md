@@ -5,7 +5,7 @@ Requirement IDs (FR/SR/NFR) refer to `docs/REQUIREMENTS.md`.
 
 | ID | Title | Covers | Value | Effort | Status | Blocked by |
 |---|---|---|---|---|---|---|
-| BL-001 | Hackathon demo: day to plan to interactive story | All Must items, FR-05, FR-14, FR-25-29, FR-32 | High | M | implementation | - |
+| BL-001 | Hackathon demo: day to plan to interactive story | All Must items, FR-05, FR-14, FR-25-29, FR-32 | High | M | implementation (merged, waiting for user check) | - |
 | BL-002 | Deploy the demo to a public URL with the API key | NFR-01, NFR-06 | High | S | draft | BL-001 |
 | BL-003 | Parent accounts and parent gate | FR-50, FR-52 | High | L | idea | - |
 | BL-004 | Save and re-read stories | FR-51, FR-53, NFR-03 | High | M | idea | BL-003 |

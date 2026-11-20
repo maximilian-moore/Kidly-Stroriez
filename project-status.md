@@ -1,7 +1,7 @@
 # Project status
 
 Last updated: 2026-11-20
-Last merged: none yet
+Last merged: BL-001 - Hackathon demo, day to plan to interactive story (PR #1)
 
 ## Where we are
 The hackathon demo (BL-001) works end to end on a phone with the built-in offline
